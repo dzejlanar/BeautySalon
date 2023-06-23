@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeautySalon.Services", "..\
 		{70C21BE2-626F-46EB-8383-FE82646BD7FF} = {70C21BE2-626F-46EB-8383-FE82646BD7FF}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeautySalon.WinUI", "..\BeautySalon.WinUI\BeautySalon.WinUI.csproj", "{4240D8FB-D275-4373-9722-1B3573F0D95E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeautySalon.WinUI", "..\BeautySalon.WinUI\BeautySalon.WinUI.csproj", "{4240D8FB-D275-4373-9722-1B3573F0D95E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{70C21BE2-626F-46EB-8383-FE82646BD7FF} = {70C21BE2-626F-46EB-8383-FE82646BD7FF}
 	EndProjectSection
