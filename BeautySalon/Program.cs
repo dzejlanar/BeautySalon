@@ -53,6 +53,8 @@ builder.Services.AddTransient<IServiceCategoryService, ServiceCategoryService>()
 builder.Services.AddTransient<IServiceService, ServiceService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IReadService<RoleVM, BaseSearchObject>, ReadService<RoleVM, Role, BaseSearchObject>>();
+builder.Services.AddTransient<IUserServiceRatingService, UserServiceRatingService>();
+builder.Services.AddTransient<IRecommendationService, RecommendationService>();
 
 var mappingConfig = new MapperConfiguration(mc =>
 {

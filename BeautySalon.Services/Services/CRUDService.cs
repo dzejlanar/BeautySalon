@@ -34,6 +34,8 @@ namespace BeautySalon.Services.Services
                 return null;
             }
 
+            BeforeUpdate(entityToUpdate, updateObject);
+
             _context.SaveChanges();
 
             return _mapper.Map<T>(entityToUpdate);
@@ -57,5 +59,7 @@ namespace BeautySalon.Services.Services
         }
 
         public virtual void BeforeInsert(TDb entity, TInsert insertObject) { }
+
+        public virtual void BeforeUpdate(TDb entity, TUpdate updateObject) { }
     }
 }

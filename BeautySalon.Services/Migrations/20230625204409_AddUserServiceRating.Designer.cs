@@ -4,6 +4,7 @@ using BeautySalon.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BeautySalon.Services.Migrations
 {
     [DbContext(typeof(BeautySalonContext))]
-    partial class BeautySalonContextModelSnapshot : ModelSnapshot
+    [Migration("20230625204409_AddUserServiceRating")]
+    partial class AddUserServiceRating
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -377,29 +379,24 @@ namespace BeautySalon.Services.Migrations
                 {
                     b.Property<int>("UserServiceRatingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("UserServiceRatingId");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserServiceRatingId"), 1L, 1);
 
                     b.Property<string>("Comment")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Comment");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Rating")
-                        .HasColumnType("int")
-                        .HasColumnName("Rating");
+                        .HasColumnType("int");
 
                     b.Property<int>("ServiceId")
-                        .HasColumnType("int")
-                        .HasColumnName("ServiceId");
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("UserId");
+                        .HasColumnType("int");
 
                     b.HasKey("UserServiceRatingId");
 
@@ -407,7 +404,7 @@ namespace BeautySalon.Services.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserServiceRating", (string)null);
+                    b.ToTable("UserServiceRating");
                 });
 
             modelBuilder.Entity("BeautySalon.Services.Database.Appointment", b =>
@@ -493,14 +490,14 @@ namespace BeautySalon.Services.Migrations
                     b.HasOne("BeautySalon.Services.Database.Service", "Service")
                         .WithMany("UserServiceRatings")
                         .HasForeignKey("ServiceId")
-                        .IsRequired()
-                        .HasConstraintName("FK_UserServiceRating_Service");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("BeautySalon.Services.Database.User", "User")
                         .WithMany("UserServicesRatings")
                         .HasForeignKey("UserId")
-                        .IsRequired()
-                        .HasConstraintName("FK_UserServiceRating_User");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Service");
 

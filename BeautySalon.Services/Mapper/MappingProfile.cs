@@ -22,6 +22,9 @@ namespace BeautySalon.Services.Mapper
             CreateMap<UserRole, UserRoleVM>();
 
             CreateMap<Role, RoleVM>();
+
+            CreateMap<UserServiceRating, UserServiceRatingVM>();
+            CreateMap<UserServiceRatingInsertRequest, UserServiceRating>();
         }
     }
 }

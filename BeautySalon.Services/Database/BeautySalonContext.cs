@@ -25,6 +25,7 @@ namespace BeautySalon.Services.Database
         public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<Service> Services { get; set; } = null!;
         public virtual DbSet<ServiceCategory> ServiceCategories { get; set; } = null!;
+        public virtual DbSet<UserServiceRating> UserServiceRatings { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -247,6 +248,35 @@ namespace BeautySalon.Services.Database
                 entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<UserServiceRating>(entity =>
+            {
+                entity.ToTable("UserServiceRating");
+
+                entity.Property(e => e.UserServiceRatingId).HasColumnName("UserServiceRatingId");
+
+                entity.Property(e => e.Rating).HasColumnName("Rating");
+
+                entity.Property(e => e.Comment).HasColumnName("Comment");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UserId).HasColumnName("UserId");
+
+                entity.Property(e => e.ServiceId).HasColumnName("ServiceId");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UserServicesRatings)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UserServiceRating_User");
+
+                entity.HasOne(d => d.Service)
+                    .WithMany(p => p.UserServiceRatings)
+                    .HasForeignKey(d => d.ServiceId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UserServiceRating_Service");
             });
 
             OnModelCreatingPartial(modelBuilder);

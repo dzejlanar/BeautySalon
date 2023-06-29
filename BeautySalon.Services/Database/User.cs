@@ -7,6 +7,7 @@
             Coupons = new HashSet<Coupon>();
             UserRoles = new HashSet<UserRole>();
             Appointments = new HashSet<Appointment>();
+            UserServicesRatings = new HashSet<UserServiceRating>();
         }
 
         public int UserId { get; set; }
@@ -23,11 +24,9 @@
         public DateTime DateOfBirth { get; set; }
         public string? Address { get; set; }
         public int? AppointmentCount { get; set; }
-
         public virtual ICollection<Appointment> Appointments { get; set; }
-
         public virtual ICollection<Coupon> Coupons { get; set; }
-
         public virtual ICollection<UserRole> UserRoles { get; set; }
+        public virtual ICollection<UserServiceRating> UserServicesRatings { get; set; }
     }
 }

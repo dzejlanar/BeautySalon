@@ -85,7 +85,7 @@ namespace BeautySalon.Services.Services
             if (updateObject.AppointmentCount != null)
                 entityToUpdate.AppointmentCount = updateObject.AppointmentCount;
 
-            entityToUpdate.UpdatedDate = DateTime.Now;
+            entityToUpdate.UpdatedDate = DateTime.UtcNow;
 
             var model = _mapper.Map<UserVM>(entityToUpdate);
 
@@ -114,7 +114,7 @@ namespace BeautySalon.Services.Services
             var salt = GenerateSalt();
             entity.PasswordSalt = salt;
             entity.PasswordHash = GenerateHash(salt, insertObject.Password);
-            entity.CreatedDate = DateTime.Now;
+            entity.CreatedDate = DateTime.UtcNow;
         }
 
         public static string GenerateSalt()

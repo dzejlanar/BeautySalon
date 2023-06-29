@@ -5,6 +5,7 @@
         public Service()
         {
             Appointments = new HashSet<Appointment>();
+            UserServiceRatings = new HashSet<UserServiceRating>();
         }
 
         public int ServiceId { get; set; }
@@ -15,8 +16,8 @@
         public long Duration { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
-
         public virtual ServiceCategory Category { get; set; } = null!;
         public virtual ICollection<Appointment> Appointments { get; set; }
+        public virtual ICollection<UserServiceRating> UserServiceRatings { get; set; }
     }
 }

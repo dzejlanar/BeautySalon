@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ApiURL" xml:space="preserve">
-    <value>https://localhost:44361/</value>
+    <value>https://localhost:7089/</value>
   </data>
   <data name="EditSuccessful" xml:space="preserve">
     <value>Edit successful!</value>

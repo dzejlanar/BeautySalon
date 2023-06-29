@@ -61,7 +61,7 @@ namespace BeautySalon.WinUI.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://localhost:44361/.
+        ///   Looks up a localized string similar to https://localhost:7089/.
         /// </summary>
         internal static string ApiURL {
             get {
