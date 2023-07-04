@@ -35,9 +35,30 @@ namespace BeautySalon.Services.Services
             entity.UpdatedDate = DateTime.UtcNow;
         }
 
+        public List<ServiceVM> GetServicesByIds(List<int> ids)
+        {
+            var services = _context.Services.Include(s => s.Category)
+                                            .Include(s => s.UserServiceRatings).ThenInclude(usr => usr.User)
+                                            .Where(s => ids.Contains(s.ServiceId))
+                                            .OrderBy(s => ids.IndexOf(s.ServiceId))
+                                            .ToList();
+
+            return _mapper.Map<List<ServiceVM>>(services);
+        }
+
         public List<ServiceVM> GetServicesFromSameCategory(Service service)
         {
             var services = _context.Services.Where(s => s.CategoryId == service.CategoryId).Take(3).ToList();
+
+            return _mapper.Map<List<ServiceVM>>(services);
+        }
+
+        public List<ServiceVM> GetTopRatedServices()
+        {
+            var services = _context.Services.Include(s => s.Category)
+                                            .Include(s => s.UserServiceRatings).ThenInclude(usr => usr.User)
+                                            .OrderByDescending(s => s.UserServiceRatings.Average(usr => usr.Rating))
+                                            .ToList();
 
             return _mapper.Map<List<ServiceVM>>(services);
         }

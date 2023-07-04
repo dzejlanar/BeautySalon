@@ -12,102 +12,118 @@ namespace BeautySalon.Services.Services
     public class RecommendationService : IRecommendationService
     {
         private readonly BeautySalonContext _context;
-        private readonly IMapper _mapper;
         private readonly IServiceService _service;
 
-        static MLContext? mlContext = null;
-        static ITransformer? model = null;
-
-        public RecommendationService(BeautySalonContext context, IMapper mapper, IServiceService service)
+        public RecommendationService(BeautySalonContext context, IServiceService service)
         {
             _context = context;
-            _mapper = mapper;
             _service = service;
-        }
-
-        public void CreateModel()
-        {
-            throw new NotImplementedException();
         }
 
         public List<ServiceVM> Recommend(int serviceId)
         {
-            var service = _context.Services.FirstOrDefault(s => s.ServiceId == serviceId) ?? throw new Exception("Service doesn't exist");
+            var service = _context.Services.Include(s => s.UserServiceRatings).FirstOrDefault(s => s.ServiceId == serviceId) ?? throw new Exception("Service doesn't exist");
 
-            if (mlContext == null)
-            {
-                mlContext = new MLContext();
-
-                var users = _context.Users.Include(u => u.UserServicesRatings.Where(usr => usr.Rating >= 3)).ToList();
-                var data = new List<ServiceEntry>();
-
-                users.ForEach(u =>
-                {
-                    if (u.UserServicesRatings.Count > 1)
-                    {
-                        var userServicesIds = u.UserServicesRatings.Select(usr => usr.ServiceId).ToList();
-
-                        userServicesIds.ForEach(usId =>
-                        {
-                            var relatedServices = u.UserServicesRatings.Where(usr => usr.ServiceId != usId).ToList();
-
-                            relatedServices.ForEach(rs =>
-                            {
-                                data.Add(new ServiceEntry
-                                {
-                                    ServiceId = (uint)usId,
-                                    CoRatedServiceId = (uint)rs.ServiceId
-                                });
-                            });
-                        });
-                    }
-                });
-
-                if (!data.Any())
-                    return _service.GetServicesFromSameCategory(service);
-
-                var dataToTrain = mlContext.Data.LoadFromEnumerable(data);
-
-                MatrixFactorizationTrainer.Options options = new()
-                {
-                    MatrixColumnIndexColumnName = nameof(ServiceEntry.ServiceId),
-                    MatrixRowIndexColumnName = nameof(ServiceEntry.CoRatedServiceId),
-                    LabelColumnName = "Label",
-
-                    LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                    Alpha = 0.01,
-                    Lambda = 0.025,
-
-                    NumberOfIterations = 100,
-                    C = 0.00001
-                };
-
-
-                var est = mlContext.Recommendation().Trainers.MatrixFactorization(options);
-
-                model = est.Fit(dataToTrain);
+            if (!service.UserServiceRatings.Any()) {
+                return _service.GetTopRatedServices();
             }
 
-            var allItems = _context.Services.Where(s => s.ServiceId != serviceId).ToList();
+            var mlContext = new MLContext();
 
-            var predictionResult = new List<Tuple<Service, float>>();
+            var model = LoadModel(mlContext);
 
-            allItems.ForEach(item =>
+            var serviceIds = _context.Services.Where(s => s.ServiceId != serviceId).Select(s => s.ServiceId).ToList();
+
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<ServiceEntry, Prediction>(model);
+            var predictionResult = new List<Tuple<int, float>>();
+
+            serviceIds.ForEach(id =>
             {
-                var predictionEngine = mlContext.Model.CreatePredictionEngine<ServiceEntry, Prediction>(model);
                 var prediction = predictionEngine.Predict(new ServiceEntry()
                 {
                     ServiceId = (uint)serviceId,
-                    CoRatedServiceId = (uint)item.ServiceId
+                    CoRatedServiceId = (uint)id
                 });
 
-                predictionResult.Add(new Tuple<Service, float>(item, prediction.Score));
+                predictionResult.Add(new Tuple<int, float>(id, prediction.Score));
             });
 
             var finalResult = predictionResult.OrderByDescending(pr => pr.Item2)
                .Select(pr => pr.Item1).Take(3).ToList();
 
-            return _mapper.Map<List<ServiceVM>>(finalResult);
+            return _service.GetServicesByIds(finalResult);
+        }
+
+        ITransformer LoadModel(MLContext mlContext)
+        {
+            DataViewSchema modelSchema;
+
+            var modelPath = Path.Combine(Environment.CurrentDirectory, "Data", "ServiceRecommender.zip");
+
+            ITransformer trainedModel = mlContext.Model.Load(modelPath, out modelSchema);
+            return trainedModel;
+        }
+
+        public async Task CreateModel()
+        {
+            var mlContext = new MLContext();
+            var users = _context.Users.Include(u => u.UserServicesRatings.Where(usr => usr.Rating >= 3)).ToList();
+            var data = new List<ServiceEntry>();
+
+            users?.ForEach(u =>
+            {
+                if (u.UserServicesRatings.Count > 1)
+                {
+                    var userServicesIds = u.UserServicesRatings.Select(usr => usr.ServiceId).ToList();
+
+                    userServicesIds.ForEach(usId =>
+                    {
+                        var relatedServices = u.UserServicesRatings.Where(usr => usr.ServiceId != usId).ToList();
+
+                        relatedServices.ForEach(rs =>
+                        {
+                            data.Add(new ServiceEntry
+                            {
+                                ServiceId = (uint)usId,
+                                CoRatedServiceId = (uint)rs.ServiceId
+                            });
+                        });
+                    });
+                }
+            });
+
+            var dataToTrain = mlContext.Data.LoadFromEnumerable(data);
+            ITransformer model = BuildAndTrainModel(mlContext, dataToTrain);
+            SaveModel(mlContext, dataToTrain.Schema, model);
+        }
+
+        ITransformer BuildAndTrainModel(MLContext mlContext, IDataView dataToTrain)
+        {
+            MatrixFactorizationTrainer.Options options = new()
+            {
+                MatrixColumnIndexColumnName = nameof(ServiceEntry.ServiceId),
+                MatrixRowIndexColumnName = nameof(ServiceEntry.CoRatedServiceId),
+                LabelColumnName = "Label",
+
+                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
+                Alpha = 0.01,
+                Lambda = 0.025,
+
+                NumberOfIterations = 100,
+                C = 0.00001
+            };
+
+
+            var est = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+
+            var model = est.Fit(dataToTrain);
+            return model;
+        }
+
+        void SaveModel(MLContext mlContext, DataViewSchema trainingDataViewSchema, ITransformer model)
+        {
+            var modelPath = Path.Combine(Environment.CurrentDirectory, "Data", "ServiceRecommender.zip");
+            mlContext.Model.Save(model, trainingDataViewSchema, modelPath);
         }
 
         public class Prediction

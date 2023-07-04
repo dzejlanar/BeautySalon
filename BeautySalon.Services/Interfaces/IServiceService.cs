@@ -9,5 +9,7 @@ namespace BeautySalon.Services.Interfaces
         : ICRUDService<ServiceVM, ServiceSearchObject, ServiceUpsertRequest, ServiceUpsertRequest> 
     {
         List<ServiceVM> GetServicesFromSameCategory(Service service);
+        List<ServiceVM> GetTopRatedServices();
+        List<ServiceVM> GetServicesByIds(List<int> ids);
     }
 }
