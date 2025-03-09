@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
-using BeautySalon.Model;
+using BeautySalon.Model.Exceptions;
 using BeautySalon.Model.Requests;
 using BeautySalon.Model.SearchObjects;
 using BeautySalon.Model.ViewModels;
 using BeautySalon.Services.Database;
 using BeautySalon.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -13,7 +14,12 @@ namespace BeautySalon.Services.Services
 {
     public class UserService : CRUDService<UserVM, User, UserSearchObject, UserInsertRequest, UserUpdateRequest>, IUserService
     {
-        public UserService(BeautySalonContext context, IMapper mapper) : base(context, mapper) { }
+        ILogger<UserService> _logger;
+
+        public UserService(BeautySalonContext context, IMapper mapper, ILogger<UserService> logger) : base(context, mapper) 
+        {
+            _logger = logger;
+        }
 
         public override IQueryable<User> AddFilter(IQueryable<User> query, UserSearchObject? searchObject)
         {
@@ -38,7 +44,7 @@ namespace BeautySalon.Services.Services
 
             var model = base.Insert(insertObject);
 
-            insertObject.RoleIds.ForEach(roleId =>
+            insertObject.RoleIds?.ForEach(roleId =>
             {
                 var role = _context.Roles.Find(roleId);
                 if (role != null) {
@@ -73,17 +79,10 @@ namespace BeautySalon.Services.Services
                 entityToUpdate.PasswordHash = GenerateHash(salt, updateObject.Password);
             }
 
-            entityToUpdate.FirstName = updateObject.FirstName;
-            entityToUpdate.LastName = updateObject.LastName;
-            entityToUpdate.IsActive = updateObject.IsActive;
-            entityToUpdate.Gender = updateObject.Gender;
-            entityToUpdate.DateOfBirth = updateObject.DateOfBirth;
+            _mapper.Map(updateObject, entityToUpdate);
             
             if (!string.IsNullOrEmpty(updateObject.Address))
                 entityToUpdate.Address = updateObject.Address;
-
-            if (updateObject.AppointmentCount != null)
-                entityToUpdate.AppointmentCount = updateObject.AppointmentCount;
 
             entityToUpdate.UpdatedDate = DateTime.UtcNow;
 
@@ -120,7 +119,7 @@ namespace BeautySalon.Services.Services
         public static string GenerateSalt()
         {
             var byteArray = new byte[16];
-            (new RNGCryptoServiceProvider()).GetBytes(byteArray);
+            new RNGCryptoServiceProvider().GetBytes(byteArray);
 
             return Convert.ToBase64String(byteArray);
         }

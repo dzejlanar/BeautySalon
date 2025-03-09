@@ -8,7 +8,7 @@
         public int CategoryId { get; set; }
         public decimal Price { get; set; }
         public long Duration { get; set; }
+        public string? Status { get; set; }
         public ServiceCategoryVM? Category { get; set; }
-        public string? CategoryName => Category?.Name;
     }
 }

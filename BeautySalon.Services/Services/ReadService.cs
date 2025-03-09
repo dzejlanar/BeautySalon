@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
+using BeautySalon.Model.Pagination;
 using BeautySalon.Model.SearchObjects;
 using BeautySalon.Services.Database;
 using BeautySalon.Services.Interfaces;
 
 namespace BeautySalon.Services.Services
 {
-    public class ReadService<T, TDb, TSearch> : IReadService<T, TSearch> 
+    public abstract class ReadService<T, TDb, TSearch> : IReadService<T, TSearch> 
         where T : class where TDb : class where TSearch : BaseSearchObject
     {
         public readonly BeautySalonContext _context;
@@ -17,7 +18,7 @@ namespace BeautySalon.Services.Services
             _mapper = mapper;
         }
 
-        public virtual IEnumerable<T> Get(TSearch? searchObject)
+        public virtual PagedResult<T> Get(TSearch? searchObject)
         {
             var entities = _context.Set<TDb>().AsQueryable();
             entities = AddFilter(entities, searchObject);
@@ -27,7 +28,13 @@ namespace BeautySalon.Services.Services
                 entities = entities.Skip((searchObject.pageNumber.Value - 1) * searchObject.pageSize.Value).Take(searchObject.pageSize.Value);
             }
 
-            return _mapper.Map<IList<T>>(entities.ToList());
+            var pagedResult = new PagedResult<T>
+            {
+                contentItems = _mapper.Map<List<T>>(entities.ToList()),
+                totalItems = entities.Count()
+            };
+
+            return pagedResult;
         }
 
         public virtual T GetOne(int id)

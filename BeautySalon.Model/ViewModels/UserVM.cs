@@ -8,7 +8,7 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public bool IsActive { get; set; }
-        public ICollection<UserRoleVM>? UserRoles { get; set; }
+        public ICollection<UserRoleVM> UserRoles { get; set; } = new List<UserRoleVM>();
         public string RoleNames => string.Join(", ", UserRoles.Select(ur => ur.Role.RoleName).ToList());
         public string Gender { get; set; }
         public DateTime DateOfBirth { get; set; }

@@ -11,5 +11,8 @@ namespace BeautySalon.Services.Interfaces
         List<ServiceVM> GetServicesFromSameCategory(Service service);
         List<ServiceVM> GetTopRatedServices();
         List<ServiceVM> GetServicesByIds(List<int> ids);
+        ServiceVM? Activate(int id);
+        ServiceVM? Hide(int id);
+        List<string>? AllowedActions(int id);
     }
 }

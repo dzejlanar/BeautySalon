@@ -4,14 +4,18 @@ using BeautySalon.Model.SearchObjects;
 using BeautySalon.Model.ViewModels;
 using BeautySalon.Services.Database;
 using BeautySalon.Services.Interfaces;
+using BeautySalon.Services.ServiceStateMachine;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace BeautySalon.Services.Services
 {
     public class ServiceService : CRUDService<ServiceVM, Service, ServiceSearchObject, ServiceUpsertRequest, ServiceUpsertRequest>, IServiceService
     {
-        public ServiceService(BeautySalonContext context, IMapper mapper) : base(context, mapper) { }
+        public BaseServiceState _state { get; set; }
+        public ServiceService(BeautySalonContext context, IMapper mapper, BaseServiceState state) : base(context, mapper) 
+        {
+            _state = state;
+        }
 
         public override IQueryable<Service> AddFilter(IQueryable<Service> query, ServiceSearchObject? searchObject)
         {
@@ -25,14 +29,22 @@ namespace BeautySalon.Services.Services
             return queryable.Include(q => q.Category);
         }
 
-        public override void BeforeInsert(Service entity, ServiceUpsertRequest insertObject)
+        public override ServiceVM Insert(ServiceUpsertRequest insertObject)
         {
-            entity.CreatedDate = DateTime.UtcNow;
+            var state = _state.CreateState("initial");
+            return state.Insert(insertObject);
         }
 
-        public override void BeforeUpdate(Service entity, ServiceUpsertRequest updateObject)
+        public override ServiceVM? Update(int id, ServiceUpsertRequest updateObject)
         {
-            entity.UpdatedDate = DateTime.UtcNow;
+            var entity = _context.Services.Find(id);
+            if (entity != null)
+            {
+                var state = _state.CreateState(entity.Status);
+                return state.Update(id, updateObject);
+            }
+
+            return null;
         }
 
         public List<ServiceVM> GetServicesByIds(List<int> ids)
@@ -61,6 +73,49 @@ namespace BeautySalon.Services.Services
                                             .ToList();
 
             return _mapper.Map<List<ServiceVM>>(services);
+        }
+
+        public ServiceVM? Activate(int id)
+        {
+            var entity = _context.Services.Find(id);
+            if (entity != null)
+            {
+                var state = _state.CreateState(entity.Status);
+                return state.Activate(id);
+            }
+
+            return null;
+        }
+
+        public ServiceVM? Hide(int id)
+        {
+            var entity = _context.Services.Find(id);
+            if (entity != null)
+            {
+                var state = _state.CreateState(entity.Status);
+                return state.Hide(id);
+            }
+
+            return null;
+        }
+
+        public List<string>? AllowedActions(int id)
+        {
+            if (id <= 0)
+            {
+                var state = _state.CreateState("initial");
+                return state.AllowedActions(null);
+            }
+
+            var entity = _context.Services.Find(id);
+
+            if (entity != null)
+            {
+                var state = _state.CreateState(entity.Status);
+                return state.AllowedActions(entity);
+            }
+
+            return null;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace BeautySalon.Model
             JsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
         }
 
-        public static IDictionary<string, string> ToKeyValue(this object metaToken)
+        public static IDictionary<string, string>? ToKeyValue(this object metaToken)
         {
             if (metaToken == null)
             {
@@ -24,7 +24,7 @@ namespace BeautySalon.Model
             }
 
 
-            JToken token = metaToken as JToken;
+            JToken? token = metaToken as JToken;
             if (token == null)
             {
                 try

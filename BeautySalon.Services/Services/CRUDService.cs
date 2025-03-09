@@ -5,7 +5,7 @@ using BeautySalon.Services.Interfaces;
 
 namespace BeautySalon.Services.Services
 {
-    public class CRUDService<T, TDb, TSearch, TInsert, TUpdate> : ReadService<T, TDb, TSearch>, ICRUDService<T, TSearch, TInsert, TUpdate>
+    public abstract class CRUDService<T, TDb, TSearch, TInsert, TUpdate> : ReadService<T, TDb, TSearch>, ICRUDService<T, TSearch, TInsert, TUpdate>
         where T : class where TDb : class where TSearch : BaseSearchObject where TInsert : class where TUpdate : class
     {
         public CRUDService(BeautySalonContext context, IMapper mapper) : base(context, mapper) { }
